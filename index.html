@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación Psicoacústica - UNTREF</title>
+    <title>Evaluación de Molestia- Fausto Piloni</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,17 +11,17 @@
         
         <!-- ETAPA 1: Bienvenida -->
         <section id="stage-1" class="stage active">
-            <h1>Evaluación Psicoacústica de Estímulos Sonoros - UNTREF</h1>
+            <h1>Evaluación Psicoacústica de Molestia - UNTREF</h1>
             <div class="instructions-box">
-                <p><strong>Encuadre Situacional:</strong> Durante la prueba, le pedimos que juzgue la molestia auditiva imaginando que se encuentra en su hogar en un momento de descanso o relajación (según las definiciones de la OMS sobre la molestia acústica).</p>
-                <p>La prueba es estrictamente anónima. No recolectaremos datos identificatorios personales.</p>
+                <p>Durante la prueba, le pedimos que juzgue la molestia auditiva imaginando que se encuentra en su hogar en un momento de descanso o relajación.</p>
+                <p>Se entiende por molestia a una sensación de incomodidad o desagrado asociada a un evento sonoro que afecta adversamente.</p>
             </div>
-            <button id="btn-start" class="btn primary">Comenzar Cuestionario Anónimo</button>
+            <button id="btn-start" class="btn primary">Comenzar Cuestionario</button>
         </section>
 
         <!-- ETAPA 2: Cuestionario -->
         <section id="stage-2" class="stage hidden">
-            <h2>Cuestionario Inicial (Tamizado)</h2>
+            <h2>Cuestionario Inicial</h2>
             <form id="screening-form">
                 <div class="form-group">
                     <label>1. Edad (años):</label>
@@ -61,7 +61,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>6. ¿Ha estado expuesto a música o ruidos a niveles elevados en las últimas 12 horas?</label>
+                    <label>6. ¿Ha estado expuesto a música o ruidos a niveles elevados en las últimas 24 horas?</label>
                     <select id="q-exposure" required>
                         <option value="">Seleccione...</option>
                         <option value="SI">SÍ</option>
@@ -78,7 +78,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>8. De acuerdo con la norma ISO/TS 15666, ¿cómo calificaría su sensibilidad general al ruido?</label>
+                    <label>8. ¿Cómo calificaría su sensibilidad general al ruido?</label>
                     <select id="q-sensitivity" required>
                         <option value="">Seleccione...</option>
                         <option value="Nada sensible">Absolutamente nada sensible</option>
@@ -94,13 +94,11 @@
 
         <!-- ETAPA 3: Instrucciones -->
         <section id="stage-3" class="stage hidden">
-            <h2>Instrucciones de la Prueba</h2>
+            <h2>Instrucciones</h2>
             <div class="instructions-box">
-                <p>Se reproducirán 2 sonidos (Estímulo A y Estímulo B) separados por un breve silencio. Su tarea es elegir <strong>cuál le resulta MÁS MOLESTO</strong>.</p>
-                <p>Antes de comenzar, por favor póngase los auriculares y ajuste el volumen a un nivel cómodo utilizando el audio de prueba a continuación.</p>
+                <p>Se reproducirán 2 sonidos (Estímulo A y Estímulo B) separados por un breve silencio. Su tarea es elegir cuál le resulta más molesto.</p>
+                <p>Antes de comenzar, por favor póngase los auriculares.</p>
             </div>
-            <button id="btn-test-audio" class="btn secondary">🔊 Reproducir Audio de Prueba</button>
-            <br><br>
             <button id="btn-start-test" class="btn primary">Iniciar Test</button>
         </section>
 
