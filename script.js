@@ -67,23 +67,33 @@ if (screeningForm) {
     screeningForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        let genderValue = document.getElementById('q-gender').value;
+        // 1. Obtener los valores de los input tipo 'radio' seleccionados
+        let genderValue = document.querySelector('input[name="gender"]:checked') ? document.querySelector('input[name="gender"]:checked').value : "";
         if (genderValue === 'Otro') {
             const otherInput = document.getElementById('q-gender-other');
             genderValue = otherInput ? (otherInput.value || 'Otro') : 'Otro';
         }
 
+        const hearingValue = document.querySelector('input[name="hearing"]:checked') ? document.querySelector('input[name="hearing"]:checked').value : "";
+        const congestionValue = document.querySelector('input[name="congestion"]:checked') ? document.querySelector('input[name="congestion"]:checked').value : "";
+        const tinnitusValue = document.querySelector('input[name="tinnitus"]:checked') ? document.querySelector('input[name="tinnitus"]:checked').value : "";
+        const exposureValue = document.querySelector('input[name="exposure"]:checked') ? document.querySelector('input[name="exposure"]:checked').value : "";
+        const fatigueValue = document.querySelector('input[name="fatigue"]:checked') ? document.querySelector('input[name="fatigue"]:checked').value : "";
+        const sensitivityValue = document.querySelector('input[name="sensitivity"]:checked') ? document.querySelector('input[name="sensitivity"]:checked').value : "";
+
+        // 2. Almacenar los datos en el objeto questionnaireData
         questionnaireData = {
             edad: document.getElementById('q-age').value,
             genero: genderValue,
-            problema_auditivo: document.getElementById('q-hearing').value,
-            congestion: document.getElementById('q-congestion').value,
-            zumbido: document.getElementById('q-tinnitus').value,
-            exposicion_ruido: document.getElementById('q-exposure').value,
-            fatiga: document.getElementById('q-fatigue').value,
-            sensibilidad: document.getElementById('q-sensitivity').value
+            problema_auditivo: hearingValue,
+            congestion: congestionValue,
+            zumbido: tinnitusValue,
+            exposicion_ruido: exposureValue,
+            fatiga: fatigueValue,
+            sensibilidad: sensitivityValue
         };
         
+        // 3. Avanzar a la Etapa 3 y cargar audios
         showStage(3);
         loadAllAudio();
     });
