@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación de Molestia- Fausto Piloni</title>
+    <title>Evaluación de Molestia - Fausto Piloni</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -29,49 +29,54 @@
                 </div>
                 <div class="form-group">
                     <label>2. Género:</label>
-                    <select id="q-gender" required>
-                        <option value="">Seleccione...</option>
+                    <select id="q-gender" required onchange="
+                        const otherInput = document.getElementById('q-gender-other');
+                        if (this.value === 'Otro') {
+                            otherInput.style.display = 'block';
+                            otherInput.required = true;
+                        } else {
+                            otherInput.style.display = 'none';
+                            otherInput.required = false;
+                        }
+                    ">
                         <option value="Masculino">Masculino</option>
                         <option value="Femenino">Femenino</option>
-                        <option value="Otro">Otro / Prefiero no decir</option>
+                        <option value="Prefiero no decir">Prefiero no decir</option>
+                        <option value="Otro">Otro</option>
                     </select>
+                    <input type="text" id="q-gender-other" placeholder="Especifique su género" style="display: none; margin-top: 10px;">
                 </div>
                 <div class="form-group">
                     <label>3. ¿Tiene o ha tenido algún problema auditivo o antecedentes otológicos?</label>
                     <select id="q-hearing" required>
-                        <option value="">Seleccione...</option>
-                        <option value="SI">SÍ</option>
                         <option value="NO">NO</option>
+                        <option value="SI">SÍ</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>4. En el día de hoy, ¿presenta congestión nasal, resfrío o la sensación de oídos tapados?</label>
                     <select id="q-congestion" required>
-                        <option value="">Seleccione...</option>
-                        <option value="SI">SÍ</option>
                         <option value="NO">NO</option>
+                        <option value="SI">SÍ</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>5. Al estar en silencio, ¿suele escuchar de forma habitual un pitido, silbido o zumbido en los oídos?</label>
                     <select id="q-tinnitus" required>
-                        <option value="">Seleccione...</option>
-                        <option value="SI">SÍ</option>
                         <option value="NO">NO</option>
+                        <option value="SI">SÍ</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>6. ¿Ha estado expuesto a música o ruidos a niveles elevados en las últimas 24 horas?</label>
                     <select id="q-exposure" required>
-                        <option value="">Seleccione...</option>
-                        <option value="SI">SÍ</option>
                         <option value="NO">NO</option>
+                        <option value="SI">SÍ</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>7. En este momento, ¿se siente cansado/a o fatigado/a?</label>
                     <select id="q-fatigue" required>
-                        <option value="">Seleccione...</option>
                         <option value="Poco/Nada">Poco / Nada</option>
                         <option value="Moderadamente">Moderadamente</option>
                         <option value="Muy cansado">Muy cansado/a</option>
@@ -80,7 +85,6 @@
                 <div class="form-group">
                     <label>8. ¿Cómo calificaría su sensibilidad general al ruido?</label>
                     <select id="q-sensitivity" required>
-                        <option value="">Seleccione...</option>
                         <option value="Nada sensible">Absolutamente nada sensible</option>
                         <option value="Ligeramente sensible">Ligeramente sensible</option>
                         <option value="Medianamente sensible">Medianamente sensible</option>
@@ -106,11 +110,10 @@
         <section id="stage-4" class="stage hidden">
             <h2>Prueba de Comparación (<span id="trial-counter">1</span>/15)</h2>
             <div id="playback-controls">
-                <button id="btn-play-trial" class="btn primary large">▶ Reproducir Comparación</button>
+                <button id="btn-play-trial" class="btn primary large">▶ Reproducir</button>
                 <p id="playback-status" class="status-indicator"></p>
             </div>
             <div id="choice-controls" class="disabled">
-                <h3>¿Qué estímulo le resultó MÁS MOLESTO?</h3>
                 <div class="choice-buttons">
                     <button id="btn-choice-a" class="btn choice" disabled>Estímulo A fue más molesto</button>
                     <button id="btn-choice-b" class="btn choice" disabled>Estímulo B fue más molesto</button>
@@ -123,7 +126,7 @@
             <h2>¡Prueba Finalizada!</h2>
             <p>Muchas gracias por su participación. El test ha concluido.</p>
             <div class="export-controls">
-                <button id="btn-export" class="btn primary">Enviar y Descargar Resultados</button>
+                <button id="btn-export" class="btn primary">Enviar Respuestas</button>
             </div>
             <p id="export-status" class="status-indicator"></p>
         </section>
