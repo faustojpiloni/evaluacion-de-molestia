@@ -203,13 +203,18 @@ if (btnPlayTrial) {
         }, 3000); 
 
         setTimeout(() => {
-            if (playbackStatus) playbackStatus.textContent = "Seleccione el estímulo más molesto.";
+            // Se actualiza el texto para indicar que también se puede repetir
+            if (playbackStatus) playbackStatus.textContent = "Seleccione el estímulo más molesto o vuelva a reproducir.";
             
             // Habilitar radios y remover estado deshabilitado en interfaz
             if (radioChoiceA) radioChoiceA.disabled = false;
             if (radioChoiceB) radioChoiceB.disabled = false;
             choiceCards.forEach(card => card.classList.remove('disabled'));
             if (choiceControls) choiceControls.classList.remove('disabled');
+            
+            // NUEVO: Habilitar de nuevo el botón de reproducción
+            if (btnPlayTrial) btnPlayTrial.disabled = false;
+            
         }, 5000); 
     });
 }
