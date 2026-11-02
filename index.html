@@ -14,84 +14,164 @@
             <h1>Evaluación Psicoacústica de Molestia - UNTREF</h1>
             <div class="instructions-box">
                 <p>Durante la prueba, le pedimos que juzgue la molestia auditiva imaginando que se encuentra en su hogar en un momento de descanso o relajación.</p>
-                <p>Se entiende por molestia a una sensación de incomodidad o desagrado asociada a un evento sonoro que le afecta adversamente.</p>
+                <p>Se entiende por molestia a una sensación de incomodidad o desagrado asociada a un evento sonoro que afecta adversamente.</p>
             </div>
-            <button id="btn-start" class="btn primary">Comenzar Cuestionario</button>
+            <button id="btn-start" type="button" class="btn primary">Comenzar Cuestionario</button>
         </section>
 
-        <!-- ETAPA 2: Cuestionario -->
+        <!-- ETAPA 2: Cuestionario Inicial -->
         <section id="stage-2" class="stage hidden">
             <h2>Cuestionario Inicial</h2>
             <form id="screening-form">
+                
                 <div class="form-group">
-                    <label>1. Edad (años):</label>
-                    <input type="number" id="q-age" min="18" max="100" required>
+                    <label class="question-title">1. Edad (años):</label>
+                    <input type="number" id="q-age" min="18" max="100" required placeholder="Ej: 25">
                 </div>
+
                 <div class="form-group">
-                    <label>2. Género:</label>
-                    <select id="q-gender" required onchange="
-                        const otherInput = document.getElementById('q-gender-other');
-                        if (this.value === 'Otro') {
-                            otherInput.style.display = 'block';
-                            otherInput.required = true;
-                        } else {
-                            otherInput.style.display = 'none';
-                            otherInput.required = false;
-                        }
-                    ">
-                        <option value="Masculino">Masculino</option>
-                        <option value="Femenino">Femenino</option>
-                        <option value="Prefiero no decir">Prefiero no decir</option>
-                        <option value="Otro">Otro</option>
-                    </select>
+                    <label class="question-title">2. Género:</label>
+                    <div class="options-container">
+                        <label class="option-card">
+                            <input type="radio" name="gender" value="Masculino" required onchange="toggleGenderOther(false)">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Masculino</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="gender" value="Femenino" onchange="toggleGenderOther(false)">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Femenino</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="gender" value="Prefiero no decir" onchange="toggleGenderOther(false)">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Prefiero no decir</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="gender" value="Otro" onchange="toggleGenderOther(true)">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Otro</span>
+                        </label>
+                    </div>
                     <input type="text" id="q-gender-other" placeholder="Especifique su género" style="display: none; margin-top: 10px;">
                 </div>
+
                 <div class="form-group">
-                    <label>3. ¿Tiene o ha tenido algún problema auditivo o antecedentes otológicos?</label>
-                    <select id="q-hearing" required>
-                        <option value="NO">NO</option>
-                        <option value="SI">SÍ</option>
-                    </select>
+                    <label class="question-title">3. ¿Tiene o ha tenido algún problema auditivo o antecedentes otológicos?</label>
+                    <div class="options-container horizontal">
+                        <label class="option-card">
+                            <input type="radio" name="hearing" value="NO" required>
+                            <span class="custom-radio"></span>
+                            <span class="label-text">NO</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="hearing" value="SI">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">SÍ</span>
+                        </label>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label>4. En el día de hoy, ¿presenta congestión nasal, resfrío o la sensación de oídos tapados?</label>
-                    <select id="q-congestion" required>
-                        <option value="NO">NO</option>
-                        <option value="SI">SÍ</option>
-                    </select>
+                    <label class="question-title">4. En el día de hoy, ¿presenta congestión nasal, resfrío o la sensación de oídos tapados?</label>
+                    <div class="options-container horizontal">
+                        <label class="option-card">
+                            <input type="radio" name="congestion" value="NO" required>
+                            <span class="custom-radio"></span>
+                            <span class="label-text">NO</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="congestion" value="SI">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">SÍ</span>
+                        </label>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label>5. Al estar en silencio, ¿suele escuchar de forma habitual un pitido, silbido o zumbido en los oídos?</label>
-                    <select id="q-tinnitus" required>
-                        <option value="NO">NO</option>
-                        <option value="SI">SÍ</option>
-                    </select>
+                    <label class="question-title">5. Al estar en silencio, ¿suele escuchar de forma habitual un pitido, silbido o zumbido en los oídos?</label>
+                    <div class="options-container horizontal">
+                        <label class="option-card">
+                            <input type="radio" name="tinnitus" value="NO" required>
+                            <span class="custom-radio"></span>
+                            <span class="label-text">NO</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="tinnitus" value="SI">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">SÍ</span>
+                        </label>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label>6. ¿Ha estado expuesto a música o ruidos a niveles elevados en las últimas 24 horas?</label>
-                    <select id="q-exposure" required>
-                        <option value="NO">NO</option>
-                        <option value="SI">SÍ</option>
-                    </select>
+                    <label class="question-title">6. ¿Ha estado expuesto a música o ruidos a niveles elevados en las últimas 24 horas?</label>
+                    <div class="options-container horizontal">
+                        <label class="option-card">
+                            <input type="radio" name="exposure" value="NO" required>
+                            <span class="custom-radio"></span>
+                            <span class="label-text">NO</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="exposure" value="SI">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">SÍ</span>
+                        </label>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label>7. En este momento, ¿se siente cansado/a o fatigado/a?</label>
-                    <select id="q-fatigue" required>
-                        <option value="Poco/Nada">Poco / Nada</option>
-                        <option value="Moderadamente">Moderadamente</option>
-                        <option value="Muy cansado">Muy cansado/a</option>
-                    </select>
+                    <label class="question-title">7. En este momento, ¿se siente cansado/a o fatigado/a?</label>
+                    <div class="options-container">
+                        <label class="option-card">
+                            <input type="radio" name="fatigue" value="Poco/Nada" required>
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Poco / Nada</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="fatigue" value="Moderadamente">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Moderadamente</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="fatigue" value="Muy cansado">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Muy cansado/a</span>
+                        </label>
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label>8. ¿Cómo calificaría su sensibilidad general al ruido?</label>
-                    <select id="q-sensitivity" required>
-                        <option value="Nada sensible">Absolutamente nada sensible</option>
-                        <option value="Ligeramente sensible">Ligeramente sensible</option>
-                        <option value="Medianamente sensible">Medianamente sensible</option>
-                        <option value="Muy sensible">Muy sensible</option>
-                        <option value="Extremadamente sensible">Extremadamente sensible</option>
-                    </select>
+                    <label class="question-title">8. ¿Cómo calificaría su sensibilidad general al ruido?</label>
+                    <div class="options-container">
+                        <label class="option-card">
+                            <input type="radio" name="sensitivity" value="Nada sensible" required>
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Absolutamente nada sensible</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="sensitivity" value="Ligeramente sensible">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Ligeramente sensible</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="sensitivity" value="Medianamente sensible">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Medianamente sensible</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="sensitivity" value="Muy sensible">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Muy sensible</span>
+                        </label>
+                        <label class="option-card">
+                            <input type="radio" name="sensitivity" value="Extremadamente sensible">
+                            <span class="custom-radio"></span>
+                            <span class="label-text">Extremadamente sensible</span>
+                        </label>
+                    </div>
                 </div>
+
                 <button type="submit" class="btn primary">Continuar</button>
             </form>
         </section>
@@ -103,20 +183,30 @@
                 <p>Se reproducirán 2 sonidos (Estímulo A y Estímulo B) separados por un breve silencio. Su tarea es elegir cuál le resulta más molesto.</p>
                 <p>Antes de comenzar, por favor póngase los auriculares.</p>
             </div>
-            <button id="btn-start-test" class="btn primary">Iniciar Test</button>
+            <button id="btn-start-test" type="button" class="btn primary">Iniciar Test</button>
         </section>
 
         <!-- ETAPA 4: Test 2AFC -->
         <section id="stage-4" class="stage hidden">
             <h2>Prueba de Comparación (<span id="trial-counter">1</span>/15)</h2>
             <div id="playback-controls">
-                <button id="btn-play-trial" class="btn primary large">▶ Reproducir</button>
+                <button id="btn-play-trial" type="button" class="btn primary large">▶ Reproducir</button>
                 <p id="playback-status" class="status-indicator"></p>
             </div>
+
+            <!-- Opciones tipo radio para la elección 2AFC -->
             <div id="choice-controls" class="disabled">
-                <div class="choice-buttons">
-                    <button id="btn-choice-a" class="btn choice" disabled>Estímulo A fue más molesto</button>
-                    <button id="btn-choice-b" class="btn choice" disabled>Estímulo B fue más molesto</button>
+                <div class="options-container horizontal">
+                    <label class="option-card choice-card disabled">
+                        <input type="radio" name="2afc_choice" value="A" id="radio-choice-a" disabled>
+                        <span class="custom-radio"></span>
+                        <span class="label-text">Estímulo A fue más molesto</span>
+                    </label>
+                    <label class="option-card choice-card disabled">
+                        <input type="radio" name="2afc_choice" value="B" id="radio-choice-b" disabled>
+                        <span class="custom-radio"></span>
+                        <span class="label-text">Estímulo B fue más molesto</span>
+                    </label>
                 </div>
             </div>
         </section>
@@ -124,14 +214,28 @@
         <!-- ETAPA 5: Finalización -->
         <section id="stage-5" class="stage hidden">
             <h2>¡Prueba Finalizada!</h2>
-            <p>Muchas gracias por su participación. El test ha concluido.</p>
+            <p>Muchas gracias por su participación. Sus respuestas se han registrado correctamente.</p>
             <div class="export-controls">
-                <button id="btn-export" class="btn primary">Enviar Respuestas</button>
+                <button id="btn-export" type="button" class="btn primary">Enviar Respuestas</button>
             </div>
             <p id="export-status" class="status-indicator"></p>
         </section>
 
     </div>
+
+    <script>
+        function toggleGenderOther(show) {
+            const otherInput = document.getElementById('q-gender-other');
+            if (show) {
+                otherInput.style.display = 'block';
+                otherInput.required = true;
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.required = false;
+                otherInput.value = '';
+            }
+        }
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
