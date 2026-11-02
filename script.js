@@ -21,29 +21,45 @@ const GOOGLE_SHEETS_WEBHOOK = "TU_URL_DE_GOOGLE_APPS_SCRIPT";
 // Elementos del DOM
 const stages = document.querySelectorAll('.stage');
 const statusIndicator = document.getElementById('status-indicator');
-const btnPlayPair = document.getElementById('btn-play-pair');
+const playbackStatus = document.getElementById('playback-status');
+const btnPlayTrial = document.getElementById('btn-play-trial');
 const btnChoiceA = document.getElementById('btn-choice-a');
 const btnChoiceB = document.getElementById('btn-choice-b');
 const trialCounter = document.getElementById('trial-counter');
+const exportStatus = document.getElementById('export-status');
 
 // Navegación de Etapas
 function showStage(stageNumber) {
     stages.forEach((s, idx) => {
-        if (idx + 1 === stageNumber) s.classList.add('active');
-        else s.classList.remove('active');
+        if (idx + 1 === stageNumber) {
+            s.classList.remove('hidden');
+            s.classList.add('active');
+        } else {
+            s.classList.remove('active');
+            s.classList.add('hidden');
+        }
     });
 }
 
-document.getElementById('btn-start-quest').addEventListener('click', () => {
+// ETAPA 1 -> 2
+document.getElementById('btn-start').addEventListener('click', () => {
     showStage(2);
     initAudioContext(); // Inicializar AudioContext por interacción del usuario
 });
 
-document.getElementById('questionnaire-form').addEventListener('submit', (e) => {
+// ETAPA 2 -> 3
+document.getElementById('screening-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    
+    // Captura del género considerando la opción "Otro"
+    let genderValue = document.getElementById('q-gender').value;
+    if (genderValue === 'Otro') {
+        genderValue = document.getElementById('q-gender-other').value || 'Otro (no especificado)';
+    }
+
     questionnaireData = {
         edad: document.getElementById('q-age').value,
-        genero: document.getElementById('q-gender').value,
+        genero: genderValue,
         problema_auditivo: document.getElementById('q-hearing').value,
         congestion: document.getElementById('q-congestion').value,
         zumbido: document.getElementById('q-tinnitus').value,
@@ -51,14 +67,12 @@ document.getElementById('questionnaire-form').addEventListener('submit', (e) => 
         fatiga: document.getElementById('q-fatigue').value,
         sensibilidad: document.getElementById('q-sensitivity').value
     };
+    
     showStage(3);
     loadAllAudio();
 });
 
-document.getElementById('btn-test-audio').addEventListener('click', () => {
-    playBuffer(audioBuffers[stimuli[0]]); // Reproduce un sonido de prueba
-});
-
+// ETAPA 3 -> 4
 document.getElementById('btn-start-test').addEventListener('click', () => {
     setup2AFC();
     showStage(4);
@@ -116,37 +130,39 @@ function setup2AFC() {
 }
 
 function updateTrialUI() {
-    trialCounter.textContent = `${currentTrialIndex + 1} de 15`;
+    trialCounter.textContent = `${currentTrialIndex + 1}`;
     btnChoiceA.disabled = true;
     btnChoiceB.disabled = true;
-    btnPlayPair.disabled = false;
-    statusIndicator.textContent = "Presione reproducir para escuchar los estímulos.";
+    btnPlayTrial.disabled = false;
+    playbackStatus.textContent = "Presione reproducir para escuchar los estímulos.";
+    document.getElementById('choice-controls').classList.add('disabled');
 }
 
-btnPlayPair.addEventListener('click', async () => {
-    btnPlayPair.disabled = true;
+btnPlayTrial.addEventListener('click', () => {
+    btnPlayTrial.disabled = true;
     const currentPair = trials[currentTrialIndex];
     const bufferA = audioBuffers[currentPair[0]];
     const bufferB = audioBuffers[currentPair[1]];
 
-    // Secuencia estricta de tiempo[cite: 15]
-    statusIndicator.textContent = "Reproduciendo Estímulo A...";
+    // Secuencia estricta de tiempo[cite: 10]
+    playbackStatus.textContent = "Reproduciendo Estímulo A...";
     playBuffer(bufferA);
     
     setTimeout(() => {
-        statusIndicator.textContent = "Silencio...";
-    }, 2000); // Fin de A (2s)
+        playbackStatus.textContent = "Silencio...";
+    }, 2000); // Fin de A (asumiendo 2s)
 
     setTimeout(() => {
-        statusIndicator.textContent = "Reproduciendo Estímulo B...";
+        playbackStatus.textContent = "Reproduciendo Estímulo B...";
         playBuffer(bufferB);
     }, 3000); // Inicio B (2s A + 1s Silencio)
 
     setTimeout(() => {
-        statusIndicator.textContent = "Seleccione el estímulo más molesto.";
+        playbackStatus.textContent = "Seleccione el estímulo más molesto.";
         btnChoiceA.disabled = false;
         btnChoiceB.disabled = false;
-    }, 5000); // Fin B (3000ms + 2000ms)
+        document.getElementById('choice-controls').classList.remove('disabled');
+    }, 5000); // Fin B (3000ms + asumiendo 2s de B)
 });
 
 function handleChoice(choice) {
@@ -177,12 +193,11 @@ document.getElementById('btn-export').addEventListener('click', async () => {
         matrix: resultsMatrix
     };
 
-    // 1. Descarga Local CSV
+    // 1. Descarga Local CSV (Se mantiene temporalmente hasta tener el webhook funcional)
     generateCSV();
 
     // 2. Envío a Google Sheets
-    const statusTxt = document.getElementById('export-status');
-    statusTxt.textContent = "Enviando datos a la nube...";
+    exportStatus.textContent = "Enviando datos a la nube...";
     try {
         await fetch(GOOGLE_SHEETS_WEBHOOK, {
             method: 'POST',
@@ -190,9 +205,9 @@ document.getElementById('btn-export').addEventListener('click', async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        statusTxt.textContent = "Datos enviados correctamente.";
+        exportStatus.textContent = "Respuestas enviadas correctamente. Ya puede cerrar esta ventana.";
     } catch (e) {
-        statusTxt.textContent = "Error al enviar a la nube. Su CSV fue descargado.";
+        exportStatus.textContent = "Error al enviar las respuestas. El archivo fue descargado localmente por seguridad.";
     }
 });
 
