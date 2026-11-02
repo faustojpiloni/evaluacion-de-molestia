@@ -7,7 +7,7 @@ const stimuli = [
     'IRN_base2_pert32',
     'IRN_base32_control',
     'IRN_base32_pert2',
-    'IRN_base22_pert32'
+    'IRN_base32_pert8'
 ];
 
 let audioBuffers = {};
