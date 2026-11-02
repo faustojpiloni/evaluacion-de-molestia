@@ -17,8 +17,10 @@ let questionnaireData = {};
 let trials = [];
 let currentTrialIndex = 0;
 let resultsMatrix = {};
+let startTime = ""; // Variable para capturar la hora de inicio
 
-const GOOGLE_SHEETS_WEBHOOK = "TU_URL_DE_GOOGLE_APPS_SCRIPT";
+// URL del Webhook de Google Apps Script actualizada
+const GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbxg6nhWov3S1D381Qvl-XMnWsGnUuV4hPusOorK2CRHInSviea9rKHGy-PhUU1MLfKp/exec";
 
 // --- ELEMENTOS DEL DOM ---
 const stages = document.querySelectorAll('.stage');
@@ -50,6 +52,9 @@ function showStage(stageNumber) {
 // ETAPA 1 -> 2
 if (btnStart) {
     btnStart.addEventListener('click', () => {
+        // Capturar fecha y hora de inicio exactas
+        startTime = new Date().toLocaleString("es-AR");
+        
         showStage(2);
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -200,13 +205,14 @@ if (btnExport) {
     btnExport.addEventListener('click', async () => {
         const payload = {
             id: sessionId,
+            startTime: startTime, // Se envía la hora de inicio capturada
             demographics: questionnaireData,
             matrix: resultsMatrix
         };
 
-        generateCSV();
+        if (exportStatus) exportStatus.textContent = "Guardando respuestas en la base de datos...";
+        if (btnExport) btnExport.disabled = true; // Bloquea el botón para evitar clics dobles
 
-        if (exportStatus) exportStatus.textContent = "Enviando respuestas...";
         try {
             await fetch(GOOGLE_SHEETS_WEBHOOK, {
                 method: 'POST',
@@ -214,35 +220,17 @@ if (btnExport) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
-            if (exportStatus) exportStatus.textContent = "Respuestas enviadas correctamente. Ya puede cerrar esta ventana.";
+            
+            if (exportStatus) {
+                exportStatus.style.color = "#28a745"; // Color verde de éxito
+                exportStatus.textContent = "Respuestas guardadas correctamente. Ya puede cerrar esta ventana.";
+            }
         } catch (e) {
-            if (exportStatus) exportStatus.textContent = "Error de red al enviar datos. El archivo fue descargado localmente por seguridad.";
+            if (exportStatus) {
+                exportStatus.style.color = "#dc3545"; // Color rojo de error
+                exportStatus.textContent = "Error de conexión. Intente enviar nuevamente.";
+            }
+            if (btnExport) btnExport.disabled = false;
         }
     });
-}
-
-function generateCSV() {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    
-    // Cabecera Demográfica
-    csvContent += "ID,Edad,Genero,ProbAuditivo,Congestion,Zumbido,ExpRuido,Fatiga,Sensibilidad\n";
-    csvContent += `${sessionId},${Object.values(questionnaireData).join(',')}\n\n`;
-    
-    // Matriz Dinámica con Nombres de Archivos Reales
-    csvContent += `Matriz de Preferencia (1=Mas molesto),${stimuli.join(',')}\n`;
-    stimuli.forEach(row => {
-        let rowData = [row];
-        stimuli.forEach(col => {
-            rowData.push(resultsMatrix[row][col]);
-        });
-        csvContent += rowData.join(",") + "\n";
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Resultado_Anonimo_${sessionId}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 }
