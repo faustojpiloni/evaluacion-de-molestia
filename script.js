@@ -1,5 +1,12 @@
 // Configuración Global y Estado
-const stimuli = ['S1', 'S2', 'S3', 'S7', 'S8', 'S9'];
+const stimuli = [
+    'IRN_base2_control',
+    'IRN_base2_pert8',
+    'IRN_base2_pert32',
+    'IRN_base32_control',
+    'IRN_base32_pert2',
+    'IRN_base22_pert32'
+];
 let audioBuffers = {};
 let audioContext;
 let sessionId = `Sujeto_${new Date().toISOString().replace(/[-:T]/g, '').slice(0,14)}`;
