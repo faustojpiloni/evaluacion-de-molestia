@@ -30,8 +30,9 @@ const btnStartTest = document.getElementById('btn-start-test');
 const btnPlayTrial = document.getElementById('btn-play-trial');
 const playbackStatus = document.getElementById('playback-status');
 const choiceControls = document.getElementById('choice-controls');
-const btnChoiceA = document.getElementById('btn-choice-a');
-const btnChoiceB = document.getElementById('btn-choice-b');
+const radioChoiceA = document.getElementById('radio-choice-a');
+const radioChoiceB = document.getElementById('radio-choice-b');
+const choiceCards = document.querySelectorAll('.choice-card');
 const trialCounter = document.getElementById('trial-counter');
 const btnExport = document.getElementById('btn-export');
 const exportStatus = document.getElementById('export-status');
@@ -137,7 +138,7 @@ function setup2AFC() {
         }
     }
     
-    // Aleatorización
+    // Aleatorización doble
     trials = trials.sort(() => Math.random() - 0.5); 
     trials = trials.map(pair => Math.random() > 0.5 ? [pair[0], pair[1]] : [pair[1], pair[0]]);
 
@@ -154,8 +155,20 @@ function setup2AFC() {
 
 function updateTrialUI() {
     if (trialCounter) trialCounter.textContent = `${currentTrialIndex + 1}`;
-    if (btnChoiceA) btnChoiceA.disabled = true;
-    if (btnChoiceB) btnChoiceB.disabled = true;
+    
+    // Desmarcar y deshabilitar radios de respuesta
+    if (radioChoiceA) {
+        radioChoiceA.checked = false;
+        radioChoiceA.disabled = true;
+    }
+    if (radioChoiceB) {
+        radioChoiceB.checked = false;
+        radioChoiceB.disabled = true;
+    }
+
+    // Deshabilitar visualmente las tarjetas contenedoras
+    choiceCards.forEach(card => card.classList.add('disabled'));
+
     if (btnPlayTrial) btnPlayTrial.disabled = false;
     if (playbackStatus) playbackStatus.textContent = "Presione reproducir para escuchar los estímulos.";
     if (choiceControls) choiceControls.classList.add('disabled');
@@ -168,7 +181,7 @@ if (btnPlayTrial) {
         const bufferA = audioBuffers[currentPair[0]];
         const bufferB = audioBuffers[currentPair[1]];
 
-        // Secuencia estricta: 2.0s de audio, 1.0s silencio, 2.0s de audio
+        // Secuencia estricta: 2.0s audio A, 1.0s silencio, 2.0s audio B
         if (playbackStatus) playbackStatus.textContent = "Reproduciendo Estímulo A...";
         if (bufferA) playBuffer(bufferA);
         
@@ -183,8 +196,11 @@ if (btnPlayTrial) {
 
         setTimeout(() => {
             if (playbackStatus) playbackStatus.textContent = "Seleccione el estímulo más molesto.";
-            if (btnChoiceA) btnChoiceA.disabled = false;
-            if (btnChoiceB) btnChoiceB.disabled = false;
+            
+            // Habilitar radios y remover estado deshabilitado en interfaz
+            if (radioChoiceA) radioChoiceA.disabled = false;
+            if (radioChoiceB) radioChoiceB.disabled = false;
+            choiceCards.forEach(card => card.classList.remove('disabled'));
             if (choiceControls) choiceControls.classList.remove('disabled');
         }, 5000); 
     });
@@ -195,7 +211,7 @@ function handleChoice(choice) {
     const winner = choice === 'A' ? currentPair[0] : currentPair[1];
     const loser = choice === 'A' ? currentPair[1] : currentPair[0];
 
-    // Matriz f_ij
+    // Registrar resultado en la matriz bidimensional
     resultsMatrix[winner][loser] = 1;
     resultsMatrix[loser][winner] = 0;
 
@@ -207,21 +223,22 @@ function handleChoice(choice) {
     }
 }
 
-if (btnChoiceA) btnChoiceA.addEventListener('click', () => handleChoice('A'));
-if (btnChoiceB) btnChoiceB.addEventListener('click', () => handleChoice('B'));
+// Escuchadores de evento al cambiar el radio button
+if (radioChoiceA) radioChoiceA.addEventListener('change', () => handleChoice('A'));
+if (radioChoiceB) radioChoiceB.addEventListener('change', () => handleChoice('B'));
 
 // --- EXPORTACIÓN DE DATOS ---
 if (btnExport) {
     btnExport.addEventListener('click', async () => {
         const payload = {
             id: sessionId,
-            startTime: startTime, // Se envía la hora de inicio capturada
+            startTime: startTime,
             demographics: questionnaireData,
             matrix: resultsMatrix
         };
 
         if (exportStatus) exportStatus.textContent = "Guardando respuestas en la base de datos...";
-        if (btnExport) btnExport.disabled = true; // Bloquea el botón para evitar clics dobles
+        if (btnExport) btnExport.disabled = true;
 
         try {
             await fetch(GOOGLE_SHEETS_WEBHOOK, {
@@ -232,12 +249,12 @@ if (btnExport) {
             });
             
             if (exportStatus) {
-                exportStatus.style.color = "#28a745"; // Color verde de éxito
+                exportStatus.style.color = "#28a745";
                 exportStatus.textContent = "Respuestas guardadas correctamente. Ya puede cerrar esta ventana.";
             }
         } catch (e) {
             if (exportStatus) {
-                exportStatus.style.color = "#dc3545"; // Color rojo de error
+                exportStatus.style.color = "#dc3545";
                 exportStatus.textContent = "Error de conexión. Intente enviar nuevamente.";
             }
             if (btnExport) btnExport.disabled = false;
