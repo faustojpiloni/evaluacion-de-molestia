@@ -113,10 +113,18 @@ async function loadAllAudio() {
     for (let s of stimuli) {
         try {
             const response = await fetch(`audio/${s}.wav`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP Error ${response.status}: Archivo 'audio/${s}.wav' no encontrado en el servidor.`);
+            }
+
             const arrayBuffer = await response.arrayBuffer();
             audioBuffers[s] = await audioContext.decodeAudioData(arrayBuffer);
+            console.log(`Audio cargado con éxito: ${s}.wav`);
+
         } catch (e) {
-            console.error(`Error cargando ${s}.wav`, e);
+            console.error(`Error crítico cargando '${s}.wav':`, e);
+            alert(`Atención: Hubo un error al cargar el archivo '${s}.wav'.\nDetalle: ${e.message}`);
         }
     }
 }
@@ -232,13 +240,16 @@ if (btnExport) {
     btnExport.addEventListener('click', async () => {
         const payload = {
             id: sessionId,
-            startTime: startTime,
+            startTime: startTime || new Date().toLocaleString("es-AR"),
             demographics: questionnaireData,
             matrix: resultsMatrix
         };
 
-        if (exportStatus) exportStatus.textContent = "Guardando respuestas en la base de datos...";
-        if (btnExport) btnExport.disabled = true;
+        if (exportStatus) {
+            exportStatus.style.color = "#0056b3";
+            exportStatus.textContent = "Guardando respuestas en la base de datos...";
+        }
+        btnExport.disabled = true;
 
         try {
             await fetch(GOOGLE_SHEETS_WEBHOOK, {
@@ -257,7 +268,7 @@ if (btnExport) {
                 exportStatus.style.color = "#dc3545";
                 exportStatus.textContent = "Error de conexión. Intente enviar nuevamente.";
             }
-            if (btnExport) btnExport.disabled = false;
+            btnExport.disabled = false;
         }
     });
 }
