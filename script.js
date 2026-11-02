@@ -1,127 +1,215 @@
-// --- CONFIGURACIÓN Y ESTADO GLOBAL ---
-const WEBHOOK_URL = 'https://script.google.com/macros/s/TU_WEBHOOK_AQUI/exec'; // Reemplazar con URL de Google Apps Script
-const STIMULI = ['S1', 'S2', 'S3', 'S7', 'S8', 'S9'];
-let audioContext;
+// Configuración Global y Estado
+const stimuli = ['S1', 'S2', 'S3', 'S7', 'S8', 'S9'];
 let audioBuffers = {};
+let audioContext;
+let sessionId = `Sujeto_${new Date().toISOString().replace(/[-:T]/g, '').slice(0,14)}`;
+let questionnaireData = {};
 let trials = [];
 let currentTrialIndex = 0;
 let resultsMatrix = {};
-let sessionData = {
-    id: `Sujeto_${new Date().toISOString().replace(/[-:T]/g, '').slice(0,1La estructura de archivos para el repositorio en GitHub Pages constará de una carpeta raíz con los archivos principales de la aplicación y un subdirectorio para los estímulos acústicos.
 
-**Estructura del Repositorio:**
-*   `index.html` (Vista principal y maquetación de las 5 etapas)
-*   `styles.css` (Diseño de la interfaz)
-*   `script.js` (Lógica de control, Web Audio API, matriz de resultados y exportación)
-*   `audio/` (Directorio para `S1.wav`, `S2.wav`, `S3.wav`, `S7.wav`, `S8.wav`, `S9.wav`)
-*   `README.md` (Documentación técnica)
+// Webhook de Google Sheets (Reemplazar con el endpoint real)
+const GOOGLE_SHEETS_WEBHOOK = "TU_URL_DE_GOOGLE_APPS_SCRIPT";
 
-### 1. `index.html`
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluación Psicoacústica de Estímulos Sonoros - UNTREF</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div id="app-container">
-        <!-- ETAPA 1: Bienvenida -->
-        <section id="stage-1" class="stage active">
-            <h1>Evaluación Psicoacústica de Estímulos Sonoros - UNTREF</h1>
-            <p>Le pedimos que evalúe la molestia auditiva de los siguientes sonidos imaginando que se encuentra en su hogar, en un momento de descanso o relajación.</p>
-            <button id="btn-start-quest">Comenzar Cuestionario Anónimo</button>
-        </section>
+// Elementos del DOM
+const stages = document.querySelectorAll('.stage');
+const statusIndicator = document.getElementById('status-indicator');
+const btnPlayPair = document.getElementById('btn-play-pair');
+const btnChoiceA = document.getElementById('btn-choice-a');
+const btnChoiceB = document.getElementById('btn-choice-b');
+const trialCounter = document.getElementById('trial-counter');
 
-        <!-- ETAPA 2: Cuestionario -->
-        <section id="stage-2" class="stage">
-            <h2>Cuestionario Inicial Anónimo</h2>
-            <form id="questionnaire-form">
-                <label>1. Edad: <input type="number" id="q-age" required min="18" max="99"> años</label>
-                
-                <label>2. Género:
-                    <select id="q-gender" required>
-                        <option value="">Seleccione...</option>
-                        <option value="Masculino">Masculino</option>
-                        <option value="Femenino">Femenino</option>
-                        <option value="Otro">Otro / Prefiero no decir</option>
-                    </select>
-                </label>
+// Navegación de Etapas
+function showStage(stageNumber) {
+    stages.forEach((s, idx) => {
+        if (idx + 1 === stageNumber) s.classList.add('active');
+        else s.classList.remove('active');
+    });
+}
 
-                <label>3. ¿Tiene o ha tenido algún problema auditivo o antecedentes otológicos?
-                    <select id="q-hearing" required><option value="">Seleccione...</option><option value="SI">SÍ</option><option value="NO">NO</option></select>
-                </label>
+document.getElementById('btn-start-quest').addEventListener('click', () => {
+    showStage(2);
+    initAudioContext(); // Inicializar AudioContext por interacción del usuario
+});
 
-                <label>4. En el día de hoy, ¿presenta congestión nasal, resfrío o la sensación de oídos tapados?
-                    <select id="q-congestion" required><option value="">Seleccione...</option><option value="SI">SÍ</option><option value="NO">NO</option></select>
-                </label>
+document.getElementById('questionnaire-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    questionnaireData = {
+        edad: document.getElementById('q-age').value,
+        genero: document.getElementById('q-gender').value,
+        problema_auditivo: document.getElementById('q-hearing').value,
+        congestion: document.getElementById('q-congestion').value,
+        zumbido: document.getElementById('q-tinnitus').value,
+        exposicion_ruido: document.getElementById('q-exposure').value,
+        fatiga: document.getElementById('q-fatigue').value,
+        sensibilidad: document.getElementById('q-sensitivity').value
+    };
+    showStage(3);
+    loadAllAudio();
+});
 
-                <label>5. Al estar en silencio, ¿suele escuchar de forma habitual un pitido, silbido o zumbido en los oídos?
-                    <select id="q-tinnitus" required><option value="">Seleccione...</option><option value="SI">SÍ</option><option value="NO">NO</option></select>
-                </label>
+document.getElementById('btn-test-audio').addEventListener('click', () => {
+    playBuffer(audioBuffers[stimuli[0]]); // Reproduce un sonido de prueba
+});
 
-                <label>6. ¿Ha estado expuesto a música o ruidos a niveles elevados en las últimas 12 horas?
-                    <select id="q-exposure" required><option value="">Seleccione...</option><option value="SI">SÍ</option><option value="NO">NO</option></select>
-                </label>
+document.getElementById('btn-start-test').addEventListener('click', () => {
+    setup2AFC();
+    showStage(4);
+});
 
-                <label>7. En este momento, ¿se siente cansado/a o fatigado/a?
-                    <select id="q-fatigue" required>
-                        <option value="">Seleccione...</option>
-                        <option value="Poco/Nada">Poco / Nada</option>
-                        <option value="Moderadamente">Moderadamente</option>
-                        <option value="Muy cansado">Muy cansado/a</option>
-                    </select>
-                </label>
+// Audio y Carga
+function initAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
 
-                <label>8. De acuerdo con la norma ISO/TS 15666, ¿cómo calificaría su sensibilidad general al ruido?
-                    <select id="q-sensitivity" required>
-                        <option value="">Seleccione...</option>
-                        <option value="Absolutamente nada">Absolutamente nada sensible</option>
-                        <option value="Ligeramente">Ligeramente sensible</option>
-                        <option value="Medianamente">Medianamente sensible</option>
-                        <option value="Muy">Muy sensible</option>
-                        <option value="Extremadamente">Extremadamente sensible</option>
-                    </select>
-                </label>
-                <button type="submit">Continuar a las Instrucciones</button>
-            </form>
-        </section>
+async function loadAllAudio() {
+    for (let s of stimuli) {
+        try {
+            const response = await fetch(`audio/${s}.wav`);
+            const arrayBuffer = await response.arrayBuffer();
+            audioBuffers[s] = await audioContext.decodeAudioData(arrayBuffer);
+        } catch (e) {
+            console.error(`Error cargando ${s}.wav`, e);
+        }
+    }
+}
 
-        <!-- ETAPA 3: Instrucciones y Prueba -->
-        <section id="stage-3" class="stage">
-            <h2>Instrucciones</h2>
-            <p>Se reproducirán 2 sonidos (Estímulo A y Estímulo B) con una duración de 2.0 segundos cada uno, separados por un silencio de 1.0 segundo[cite: 15].</p>
-            <p>Su tarea es elegir cuál de los dos sonidos le resulta <strong>MÁS MOLESTO</strong>[cite: 15].</p>
-            <div class="audio-test-box">
-                <p>Ajuste el volumen de sus auriculares a un nivel cómodo usando este audio de prueba:</p>
-                <button id="btn-test-audio">🔊 Reproducir Audio de Prueba</button>
-            </div>
-            <button id="btn-start-test">Iniciar Prueba 2AFC</button>
-        </section>
+function playBuffer(buffer) {
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+    return source;
+}
 
-        <!-- ETAPA 4: Test 2AFC -->
-        <section id="stage-4" class="stage">
-            <h2>Prueba de Comparación <span id="trial-counter">1 de 15</span></h2>
-            <div class="playback-controls">
-                <button id="btn-play-pair">▶ Reproducir Comparación</button>
-            </div>
-            <div class="status-indicator" id="status-indicator">Presione reproducir para escuchar los estímulos.</div>
-            <div class="choices">
-                <button id="btn-choice-a" class="choice-btn" disabled>El Estímulo A fue más molesto</button>
-                <button id="btn-choice-b" class="choice-btn" disabled>El Estímulo B fue más molesto</button>
-            </div>
-        </section>
+// Lógica 2AFC
+function setup2AFC() {
+    trials = [];
+    // 1. Generar 15 pares únicos
+    for (let i = 0; i < stimuli.length; i++) {
+        for (let j = i + 1; j < stimuli.length; j++) {
+            trials.push([stimuli[i], stimuli[j]]);
+        }
+    }
+    // 2. Aleatorización doble
+    trials = trials.sort(() => Math.random() - 0.5); // Orden de los pares
+    trials = trials.map(pair => Math.random() > 0.5 ? [pair[0], pair[1]] : [pair[1], pair[0]]); // Orden interno A/B
 
-        <!-- ETAPA 5: Finalización -->
-        <section id="stage-5" class="stage">
-            <h2>¡Prueba Finalizada!</h2>
-            <p>Muchas gracias por su participación. Sus respuestas han sido registradas de forma completamente anónima.</p>
-            <button id="btn-export">Enviar y Descargar Resultados</button>
-            <p id="export-status"></p>
-        </section>
-    </div>
-    <script src="script.js"></script>
-</body>
-</html>
+    // Inicializar matriz 6x6
+    stimuli.forEach(s1 => {
+        resultsMatrix[s1] = {};
+        stimuli.forEach(s2 => {
+            resultsMatrix[s1][s2] = (s1 === s2) ? 'N/A' : null;
+        });
+    });
+    
+    updateTrialUI();
+}
+
+function updateTrialUI() {
+    trialCounter.textContent = `${currentTrialIndex + 1} de 15`;
+    btnChoiceA.disabled = true;
+    btnChoiceB.disabled = true;
+    btnPlayPair.disabled = false;
+    statusIndicator.textContent = "Presione reproducir para escuchar los estímulos.";
+}
+
+btnPlayPair.addEventListener('click', async () => {
+    btnPlayPair.disabled = true;
+    const currentPair = trials[currentTrialIndex];
+    const bufferA = audioBuffers[currentPair[0]];
+    const bufferB = audioBuffers[currentPair[1]];
+
+    // Secuencia estricta de tiempo[cite: 15]
+    statusIndicator.textContent = "Reproduciendo Estímulo A...";
+    playBuffer(bufferA);
+    
+    setTimeout(() => {
+        statusIndicator.textContent = "Silencio...";
+    }, 2000); // Fin de A (2s)
+
+    setTimeout(() => {
+        statusIndicator.textContent = "Reproduciendo Estímulo B...";
+        playBuffer(bufferB);
+    }, 3000); // Inicio B (2s A + 1s Silencio)
+
+    setTimeout(() => {
+        statusIndicator.textContent = "Seleccione el estímulo más molesto.";
+        btnChoiceA.disabled = false;
+        btnChoiceB.disabled = false;
+    }, 5000); // Fin B (3000ms + 2000ms)
+});
+
+function handleChoice(choice) {
+    const currentPair = trials[currentTrialIndex];
+    const winner = choice === 'A' ? currentPair[0] : currentPair[1];
+    const loser = choice === 'A' ? currentPair[1] : currentPair[0];
+
+    // Registrar en matriz f_ij (1 si i es más molesto que j)
+    resultsMatrix[winner][loser] = 1;
+    resultsMatrix[loser][winner] = 0;
+
+    currentTrialIndex++;
+    if (currentTrialIndex < trials.length) {
+        updateTrialUI();
+    } else {
+        showStage(5);
+    }
+}
+
+btnChoiceA.addEventListener('click', () => handleChoice('A'));
+btnChoiceB.addEventListener('click', () => handleChoice('B'));
+
+// Exportación de Datos
+document.getElementById('btn-export').addEventListener('click', async () => {
+    const payload = {
+        id: sessionId,
+        demographics: questionnaireData,
+        matrix: resultsMatrix
+    };
+
+    // 1. Descarga Local CSV
+    generateCSV();
+
+    // 2. Envío a Google Sheets
+    const statusTxt = document.getElementById('export-status');
+    statusTxt.textContent = "Enviando datos a la nube...";
+    try {
+        await fetch(GOOGLE_SHEETS_WEBHOOK, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        statusTxt.textContent = "Datos enviados correctamente.";
+    } catch (e) {
+        statusTxt.textContent = "Error al enviar a la nube. Su CSV fue descargado.";
+    }
+});
+
+function generateCSV() {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    // Cabecera Demográfica
+    csvContent += "ID,Edad,Genero,ProbAuditivo,Congestion,Zumbido,ExpRuido,Fatiga,Sensibilidad\n";
+    csvContent += `${sessionId},${Object.values(questionnaireData).join(',')}\n\n`;
+    
+    // Matriz
+    csvContent += "Matriz de Preferencia (1=Mas molesto),S1,S2,S3,S7,S8,S9\n";
+    stimuli.forEach(row => {
+        let rowData = [row];
+        stimuli.forEach(col => {
+            rowData.push(resultsMatrix[row][col]);
+        });
+        csvContent += rowData.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Resultado_Anonimo_${sessionId}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
